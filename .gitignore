@@ -1,4 +1,6 @@
 /build/
+.dockerignore
+Dockerfile
 CMakeLists.txt.user
 CMakeCache.txt
 CMakeFiles
