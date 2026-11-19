@@ -1,10 +1,10 @@
 info:
-  name: Untitled
+  name: post health
   type: http
-  seq: 1
+  seq: 3
 
 http:
-  method: GET
+  method: POST
   url: http://localhost:8080/health
   auth: inherit
 
