@@ -2,12 +2,14 @@
 #include "http/parser.hpp"
 #include "http/response.hpp"
 #include "http/router.hpp"
+#include <cerrno>
 #include <csignal>
 #include <iostream>
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/socket.h>
+#include <unistd.h>
 namespace net {
 
 volatile std::sig_atomic_t stop = 0;
@@ -68,11 +70,21 @@ void Server::Run() {
   while (!stop) {
     int client_fd = accept(listener_fd, nullptr, nullptr);
     if (client_fd == -1) {
+      if (errno == EINTR) {
+        continue;
+      }
       perror("accept");
-      exit(1);
+      break;
     }
     ServeClient(client_fd);
+    close(client_fd);
   }
+  if (stop == SIGINT) {
+    std::cout << "\nSIGINT received\n";
+  } else if (stop == SIGTERM) {
+    std::cout << "\nSIGTERM received\n";
+  }
+  close(listener_fd);
 }
 void Server::ServeClient(int client_fd) {
   std::string buffer;
@@ -82,6 +94,12 @@ void Server::ServeClient(int client_fd) {
       const http::ParseResult parsed = http::Parser::Parse(buffer);
       if (parsed.status == http::ParseStatus::Incomplete) {
         break;
+      }
+      if (parsed.status == http::ParseStatus::BadRequest) {
+        http::Response response =
+            http::Response::Json(400, R"({"error":"Bad Request"})");
+        SendAll(client_fd, response.Serialize(false));
+        return;
       }
       const bool keep_alive = parsed.request.keep_alive && !stop;
       std::cout << parsed.request.method + parsed.request.path << '\n';
