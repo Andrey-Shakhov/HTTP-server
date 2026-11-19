@@ -1,16 +1,13 @@
 #pragma once
+#include "http/router.hpp"
 #include "server/config.hpp"
-
-namespace http {
-class Router;
-}
 
 namespace net {
 class Server {
 public:
   Server(server::Config config, const http::Router &router);
   void Run();
-  ~Server();
+  ~Server() = default;
 
 private:
   void ServeClient(int client_fd);

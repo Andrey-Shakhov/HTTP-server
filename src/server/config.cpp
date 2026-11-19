@@ -17,7 +17,7 @@ unsigned int ParseNumber(std::string_view value, unsigned int maximum) {
 }
 Config Parse(int argc, char *argv[]) {
   Config config;
-  for (int i = 0; i < argc; i++) {
+  for (int i = 1; i < argc; i++) {
     std::string_view argument = argv[i];
     if (argument != "--port" && argument != "--threads") {
       throw std::invalid_argument("unknown argument: " + std::string(argument));

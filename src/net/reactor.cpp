@@ -84,6 +84,7 @@ void Server::ServeClient(int client_fd) {
         break;
       }
       const bool keep_alive = parsed.request.keep_alive && !stop;
+      std::cout << parsed.request.method + parsed.request.path << '\n';
       http::Response response = router_.Handle(parsed.request);
       if (!SendAll(client_fd, response.Serialize(keep_alive))) {
         return;
@@ -97,10 +98,11 @@ void Server::ServeClient(int client_fd) {
     const ssize_t received = recv(client_fd, chunk, sizeof(chunk), 0);
     if (received > 0) {
       buffer.append(chunk, static_cast<size_t>(received));
-    }
-    else if (received == 0) { return; }
-    else if (!stop && received == -1 && errno == EINTR) { continue; }
-    else {
+    } else if (received == 0) {
+      return;
+    } else if (!stop && received == -1 && errno == EINTR) {
+      continue;
+    } else {
       return;
     }
   }
